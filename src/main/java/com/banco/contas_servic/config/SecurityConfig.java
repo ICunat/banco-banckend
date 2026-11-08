@@ -26,19 +26,20 @@ public class SecurityConfig {
         http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/transferencias").hasRole("CLIENTE")
                 .requestMatchers("/contas/*/validar-pin").hasRole("CLIENTE")
                 .requestMatchers("/contas/*/pin").hasRole("CLIENTE")
                 .requestMatchers("/contas/*/movimentos").hasAnyRole("CLIENTE", "FUNCIONARIO")
                 .requestMatchers("/contas/*/bloquear", "/contas/*/desbloquear").hasRole("FUNCIONARIO")
                 .requestMatchers("/contas/*/depositos").hasRole("FUNCIONARIO")
+                .requestMatchers("/contas/*/creditar", "/contas/transferir").hasRole("FUNCIONARIO")
                 .requestMatchers("/clientes/**").hasRole("FUNCIONARIO")
-                .requestMatchers("/auditoria").hasRole("FUNCIONARIO")
                 .requestMatchers("/contas", "/contas/*").hasAnyRole("CLIENTE", "FUNCIONARIO")
                 .anyRequest().authenticated());
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(new ProprietarioContaFilter(), JwtFilter.class);
         return http.build();
     }
 

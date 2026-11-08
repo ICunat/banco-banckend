@@ -1,5 +1,6 @@
 package com.banco.contas_servic.controller;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,13 @@ public class TransacaoController {
     }
 
     @PostMapping("/transferencias")
-    public ResponseEntity<TransacaoResponse> transferir(@Valid @RequestBody TransferenciaRequest pedido) {
+    public ResponseEntity<TransacaoResponse> transferir(@Valid @RequestBody TransferenciaRequest pedido,
+                                                        Principal principal) {
+        // So se pode transferir a partir da propria conta
+        if (!pedido.getOrigem().equals(principal.getName())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         Transacao t = service.transferir(pedido.getOrigem(), pedido.getDestino(),
                 pedido.getValor(), pedido.getPin());
         if (t == null) {
